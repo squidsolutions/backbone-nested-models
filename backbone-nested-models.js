@@ -82,10 +82,10 @@
 
         // Handle both `"key", value` and `{key: value}` -style arguments.
         if (typeof key === 'object') {
-            attrs = key;
-            options = val;
+          attrs = key;
+          options = val;
         } else {
-            (attrs = {})[key] = val;
+          (attrs = {})[key] = val;
         }
 
         options || (options = {});
@@ -101,8 +101,8 @@
         this._changing  = true;
 
         if (!changing) {
-            this._previousAttributes = _.clone(this.attributes);
-            this.changed = {};
+          this._previousAttributes = _.clone(this.attributes);
+          this.changed = {};
         }
         current = this.attributes, prev = this._previousAttributes;
 
@@ -111,34 +111,37 @@
 
         // For each `set` attribute, update or delete the current value.
         for (attr in attrs) {
-            val = attrs[attr];
+          val = attrs[attr];
 
             // Inject in the relational lookup
             val = this.setRelation(attr, val, options);
 
-            if (!_.isEqual(current[attr], val)) changes.push(attr);
-            if (!_.isEqual(prev[attr], val)) {
-                this.changed[attr] = val;
-            } else {
-                delete this.changed[attr];
-            }
-            unset ? delete current[attr] : current[attr] = val;
+          if (!_.isEqual(current[attr], val)) changes.push(attr);
+          if (!_.isEqual(prev[attr], val)) {
+            this.changed[attr] = val;
+          } else {
+            delete this.changed[attr];
+          }
+          unset ? delete current[attr] : current[attr] = val;
         }
 
         // Trigger all relevant attribute changes.
         if (!silent) {
-            if (changes.length) this._pending = true;
-            for (var i = 0, l = changes.length; i < l; i++) {
-                this.trigger('change:' + changes[i], this, current[changes[i]], options);
-            }
+          if (changes.length) this._pending = options;
+          for (var i = 0, l = changes.length; i < l; i++) {
+            this.trigger('change:' + changes[i], this, current[changes[i]], options);
+          }
         }
 
+        // You might be wondering why there's a `while` loop here. Changes can
+        // be recursively nested within `"change"` events.
         if (changing) return this;
         if (!silent) {
-            while (this._pending) {
-                this._pending = false;
-                this.trigger('change', this, options);
-            }
+          while (this._pending) {
+            options = this._pending;
+            this._pending = false;
+            this.trigger('change', this, options);
+          }
         }
         this._pending = false;
         this._changing = false;
